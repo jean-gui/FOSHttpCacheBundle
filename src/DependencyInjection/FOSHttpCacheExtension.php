@@ -337,6 +337,9 @@ class FOSHttpCacheExtension extends Extension
         if (isset($config['symfony'])) {
             $this->loadSymfony($container, $loader, $config['symfony']);
         }
+        if (isset($config['cloudflare'])) {
+            $this->loadCloudflare($container, $loader, $config['cloudflare']);
+        }
         if (isset($config['noop'])) {
             $loader->load('noop.xml');
         }
@@ -453,6 +456,23 @@ class FOSHttpCacheExtension extends Extension
         $container->setParameter('fos_http_cache.proxy_client.symfony.options', $options);
 
         $loader->load('symfony.xml');
+    }
+
+    private function loadCloudflare(ContainerBuilder $container, XmlFileLoader $loader, array $config)
+    {
+        $this->createHttpDispatcherDefinition(
+            $container,
+            ['servers' => ['https://api.cloudflare.com']],
+            'fos_http_cache.proxy_client.varnish.http_dispatcher'
+        );
+        $options = [
+            'authentication_token' => $config['authentication_token'],
+            'zone_identifier' => $config['zone_identifier'],
+        ];
+
+        $container->setParameter('fos_http_cache.proxy_client.cloudflare.options', $options);
+
+        $loader->load('cloudflare.xml');
     }
 
     /**
